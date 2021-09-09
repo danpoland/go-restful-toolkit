@@ -30,7 +30,7 @@ type SchemaError struct {
 // Result indicates if a call to validate was successful and contains the errors
 // associated with a failed validation.
 type Result struct {
-	Success    bool
+	Success    bool          `json:"success"`
 	FieldErrs  []FieldError  `json:"field_errors"`
 	SchemaErrs []SchemaError `json:"schema_errors"`
 }
