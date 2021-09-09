@@ -27,11 +27,11 @@ func TestErrorCodes(t *testing.T) {
 }
 
 func TestNewSuccess(t *testing.T) {
-	assert.Equal(t, &Result{Success: true}, NewSuccess())
+	assert.Equal(t, &Result{Success: true}, Success())
 }
 
 func TestNewFieldsFailure(t *testing.T) {
-	got := NewFieldsFailure(FieldError{Field: "name"}, FieldError{Field: "email"})
+	got := FieldsFailure(FieldError{Field: "name"}, FieldError{Field: "email"})
 	expected := &Result{
 		Success:   false,
 		FieldErrs: []FieldError{{Field: "name"}, {Field: "email"}},
