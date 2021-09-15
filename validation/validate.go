@@ -30,6 +30,16 @@ type Validatable interface {
 	Validate(ctx context.Context) (*Result, error)
 }
 
+// ValidateSuccess provides a Validate function to other structs that need to implement Validatable but
+// only require the basic field level validation provided by the validation attribute tags.
+type ValidateSuccess struct {
+}
+
+// Validate returns a success result.
+func (v *ValidateSuccess) Validate(ctx context.Context) (*Result, error) {
+	return Success(), nil
+}
+
 // Bind decodes a http request's JSON body to the provided validatable interface and returns a Result
 // indicating if the decode process was successful. If the decode process fails the Result will contain a SchemaError
 // with the Malformed ErrorCode.
