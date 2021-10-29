@@ -25,19 +25,24 @@ func BadRequest(w http.ResponseWriter, body interface{}) error {
 	return Response(w, http.StatusBadRequest, body)
 }
 
-// UnprocessableEntity renders a 422 response with the provided body.
-func UnprocessableEntity(w http.ResponseWriter, body interface{}) error {
-	return Response(w, http.StatusUnprocessableEntity, body)
-}
-
-// Unauthorized renders a 401 with the provided body.
+// Unauthorized renders a 401 response.
 func Unauthorized(w http.ResponseWriter) error {
 	return Response(w, http.StatusUnauthorized, nil)
+}
+
+// Forbidden renders a 403 response.
+func Forbidden(w http.ResponseWriter) error {
+	return Response(w, http.StatusForbidden, nil)
 }
 
 // NotFound renders a 404 response.
 func NotFound(w http.ResponseWriter) error {
 	return Response(w, http.StatusNotFound, nil)
+}
+
+// UnprocessableEntity renders a 422 response with the provided body.
+func UnprocessableEntity(w http.ResponseWriter, body interface{}) error {
+	return Response(w, http.StatusUnprocessableEntity, body)
 }
 
 // ServerError renders a 500 response.

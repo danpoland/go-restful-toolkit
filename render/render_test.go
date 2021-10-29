@@ -52,18 +52,6 @@ func TestBadRequest(t *testing.T) {
 	}
 }
 
-func TestUnprocessableEntity(t *testing.T) {
-	w := httptest.NewRecorder()
-	body := map[string]string{"key": "val"}
-	_ = UnprocessableEntity(w, body)
-
-	r := w.Result()
-
-	if r.StatusCode != 422 {
-		t.Errorf("Expected 422, got '%v'", r.StatusCode)
-	}
-}
-
 func TestUnauthorized(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Unauthorized(w)
@@ -75,6 +63,17 @@ func TestUnauthorized(t *testing.T) {
 	}
 }
 
+func TestForbidden(t *testing.T) {
+	w := httptest.NewRecorder()
+	_ = Forbidden(w)
+
+	r := w.Result()
+
+	if r.StatusCode != 403 {
+		t.Errorf("Expected 403, got '%v'", r.StatusCode)
+	}
+}
+
 func TestNotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = NotFound(w)
@@ -83,6 +82,18 @@ func TestNotFound(t *testing.T) {
 
 	if r.StatusCode != 404 {
 		t.Errorf("Expected 404, got '%v'", r.StatusCode)
+	}
+}
+
+func TestUnprocessableEntity(t *testing.T) {
+	w := httptest.NewRecorder()
+	body := map[string]string{"key": "val"}
+	_ = UnprocessableEntity(w, body)
+
+	r := w.Result()
+
+	if r.StatusCode != 422 {
+		t.Errorf("Expected 422, got '%v'", r.StatusCode)
 	}
 }
 
