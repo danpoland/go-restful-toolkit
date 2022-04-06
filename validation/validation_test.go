@@ -14,6 +14,15 @@ type testSchema struct {
 	Name string `json:"first_name" validate:"required"`
 }
 
+type addressSchema struct {
+	Street string `json:"street" validate:"required"`
+}
+
+type nestedTestSchema struct {
+	Name      string          `json:"first_name" validate:"required"`
+	Addresses []addressSchema `json:"addresses" validate:"required,dive"`
+}
+
 func (t *testSchema) Validate(ctx context.Context) (*Result, error) {
 	return &Result{Success: true}, nil
 }
@@ -129,5 +138,19 @@ func TestMarshalValidationErrors(t *testing.T) {
 		Field: "first_name",
 	}}
 
-	assert.Equal(t, MarshalValidationErrors(errs), expected)
+	assert.Equal(t, expected, MarshalValidationErrors(errs))
+}
+
+func TestMarshalValidationErrors_Nested(t *testing.T) {
+	schema := nestedTestSchema{
+		Name:      "Test",
+		Addresses: []addressSchema{{}},
+	}
+	expected := []FieldError{{
+		Code:  Required,
+		Field: "addresses[0].street",
+	}}
+	errs := (validate.Struct(schema)).(validator.ValidationErrors)
+
+	assert.Equal(t, expected, MarshalValidationErrors(errs))
 }

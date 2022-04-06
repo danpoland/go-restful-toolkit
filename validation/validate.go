@@ -83,8 +83,9 @@ func MarshalValidationErrors(errs validator.ValidationErrors) []FieldError {
 	var fErrs []FieldError
 
 	for _, ve := range errs {
+		parts := strings.SplitN(ve.Namespace(), ".", 2)
 		fErrs = append(fErrs, FieldError{
-			Field: ve.Field(),
+			Field: parts[1],
 			Code:  ve.Tag(),
 		})
 	}
