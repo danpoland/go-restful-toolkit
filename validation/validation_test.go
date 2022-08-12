@@ -35,7 +35,7 @@ func TestValidateJsonTags(t *testing.T) {
 	}
 }
 
-func TestBind(t *testing.T) {
+func TestBindBody(t *testing.T) {
 	type test struct {
 		body           string
 		expectedStruct testSchema
@@ -60,7 +60,7 @@ func TestBind(t *testing.T) {
 		req := httptest.NewRequest("POST", "http://questboard.io/test", reader)
 
 		var ts testSchema
-		res := Bind(req, &ts)
+		res := BindBody(req, &ts)
 
 		assert.Equal(t, tc.expectedStruct, ts)
 		assert.Equal(t, &tc.expectedResult, res)
@@ -101,7 +101,7 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-func TestBindAndValidate(t *testing.T) {
+func TestBindBodyAndValidate(t *testing.T) {
 	type test struct {
 		body           string
 		expectedStruct testSchema
@@ -123,7 +123,7 @@ func TestBindAndValidate(t *testing.T) {
 		req := httptest.NewRequest("POST", "http://questboard.io/test", reader)
 
 		var ts testSchema
-		res, err := BindAndValidate(context.TODO(), req, &ts)
+		res, err := BindBodyAndValidate(context.TODO(), req, &ts)
 
 		assert.Equal(t, tc.expectedStruct, ts)
 		assert.Equal(t, &tc.expectedResult, res)

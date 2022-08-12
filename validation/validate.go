@@ -40,10 +40,10 @@ func (v *ValidateSuccess) Validate(ctx context.Context) (*Result, error) {
 	return Success(), nil
 }
 
-// Bind decodes a http request's JSON body to the provided validatable interface and returns a Result
+// BindBody decodes a http request's JSON body to the provided validatable interface and returns a Result
 // indicating if the decode process was successful. If the decode process fails the Result will contain a SchemaError
 // with the Malformed ErrorCode.
-func Bind(r *http.Request, schema interface{}) *Result {
+func BindBody(r *http.Request, schema interface{}) *Result {
 	if err := json.NewDecoder(r.Body).Decode(schema); err != nil {
 		return &Result{SchemaErrs: []SchemaError{{Code: Malformed}}}
 	}
@@ -68,10 +68,10 @@ func Validate(ctx context.Context, v Validatable) (*Result, error) {
 	return v.Validate(ctx)
 }
 
-// BindAndValidate binds a request's JSON body to the provided Validatable interface, validates
+// BindBodyAndValidate binds a request's JSON body to the provided Validatable interface, validates
 // the fields on the schema using validator, and finally calls validate on the Validatable schema.
-func BindAndValidate(ctx context.Context, r *http.Request, schema Validatable) (*Result, error) {
-	if res := Bind(r, schema); !res.Success {
+func BindBodyAndValidate(ctx context.Context, r *http.Request, schema Validatable) (*Result, error) {
+	if res := BindBody(r, schema); !res.Success {
 		return res, nil
 	}
 	return Validate(ctx, schema)
