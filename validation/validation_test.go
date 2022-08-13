@@ -14,6 +14,15 @@ type testSchema struct {
 	Name string `json:"first_name" validate:"required"`
 }
 
+func (t *testSchema) Validate(ctx context.Context) (*Result, error) {
+	return &Result{Success: true}, nil
+}
+
+type numberSchema struct {
+	PageNumber int `schema:"page_number" validate:"max=2"`
+	ValidateSuccess
+}
+
 type addressSchema struct {
 	Street string `json:"street" validate:"required"`
 }
@@ -21,10 +30,6 @@ type addressSchema struct {
 type nestedTestSchema struct {
 	Name      string          `json:"first_name" validate:"required"`
 	Addresses []addressSchema `json:"addresses" validate:"required,dive"`
-}
-
-func (t *testSchema) Validate(ctx context.Context) (*Result, error) {
-	return &Result{Success: true}, nil
 }
 
 func TestValidateJsonTags(t *testing.T) {
@@ -63,6 +68,38 @@ func TestBindBody(t *testing.T) {
 		res := BindBody(req, &ts)
 
 		assert.Equal(t, tc.expectedStruct, ts)
+		assert.Equal(t, &tc.expectedResult, res)
+	}
+}
+
+func TestBindQuery(t *testing.T) {
+	type test struct {
+		query          string
+		expectedStruct numberSchema
+		expectedResult Result
+	}
+
+	tests := []test{
+		{
+			"?page_number=1",
+			numberSchema{PageNumber: 1},
+			Result{Success: true},
+		},
+		{
+			"?page_number=a",
+			numberSchema{},
+			Result{FieldErrs: []FieldError{{Field: "page_number", Code: Malformed}}},
+		},
+	}
+
+	for _, tc := range tests {
+		reader := strings.NewReader("")
+		req := httptest.NewRequest("GEt", "http://questboard.io/test"+tc.query, reader)
+
+		var ns numberSchema
+		res := BindQuery(req, &ns)
+
+		assert.Equal(t, tc.expectedStruct, ns)
 		assert.Equal(t, &tc.expectedResult, res)
 	}
 }
@@ -126,6 +163,48 @@ func TestBindBodyAndValidate(t *testing.T) {
 		res, err := BindBodyAndValidate(context.TODO(), req, &ts)
 
 		assert.Equal(t, tc.expectedStruct, ts)
+		assert.Equal(t, &tc.expectedResult, res)
+		assert.Equal(t, tc.expectedError, err)
+	}
+}
+
+func TestBindQueryAndValidate(t *testing.T) {
+	type test struct {
+		query          string
+		expectedStruct numberSchema
+		expectedResult Result
+		expectedError  error
+	}
+
+	tests := []test{
+		{
+			"?page_number=1",
+			numberSchema{PageNumber: 1},
+			Result{Success: true},
+			nil,
+		},
+		{
+			"?page_number=a",
+			numberSchema{},
+			Result{FieldErrs: []FieldError{{Field: "page_number", Code: Malformed}}},
+			nil,
+		},
+		{
+			"?page_number=3",
+			numberSchema{PageNumber: 3},
+			Result{FieldErrs: []FieldError{{Field: "PageNumber", Code: "max"}}},
+			nil,
+		},
+	}
+
+	for _, tc := range tests {
+		reader := strings.NewReader("")
+		req := httptest.NewRequest("POST", "http://questboard.io/test"+tc.query, reader)
+
+		var ns numberSchema
+		res, err := BindQueryAndValidate(context.TODO(), req, &ns)
+
+		assert.Equal(t, tc.expectedStruct, ns)
 		assert.Equal(t, &tc.expectedResult, res)
 		assert.Equal(t, tc.expectedError, err)
 	}

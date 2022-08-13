@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/go-playground/validator/v10 v10.9.0
+	github.com/gorilla/schema v1.2.0
 	github.com/stretchr/testify v1.7.0
 )
 
