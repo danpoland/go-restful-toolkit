@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/schema"
 )
 
+var decoder = schema.NewDecoder()
 var validate *validator.Validate
 
 func init() {
@@ -43,16 +45,37 @@ func (v *ValidateSuccess) Validate(ctx context.Context) (*Result, error) {
 // BindBody decodes a http request's JSON body to the provided validatable interface and returns a Result
 // indicating if the decode process was successful. If the decode process fails the Result will contain a SchemaError
 // with the Malformed ErrorCode.
-func BindBody(r *http.Request, schema interface{}) *Result {
-	if err := json.NewDecoder(r.Body).Decode(schema); err != nil {
+func BindBody(r *http.Request, target interface{}) *Result {
+	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
 		return &Result{SchemaErrs: []SchemaError{{Code: Malformed}}}
 	}
 	return &Result{Success: true}
 }
 
+// BindQuery decodes a http request's URL query parameters to the provided validatable interface and returns a Result
+// indicating if the decode process was successful. If the decode process fails the Result will contain FieldError
+// errors with the Malformed ErrorCode.
+func BindQuery(r *http.Request, target interface{}) *Result {
+	err := decoder.Decode(target, r.URL.Query())
+	if err == nil {
+		return &Result{Success: true}
+	}
+
+	var fieldErrors []FieldError
+
+	if mErr, ok := err.(schema.MultiError); ok {
+		for _, v := range mErr {
+			cErr, _ := v.(schema.ConversionError)
+			fieldErrors = append(fieldErrors, FieldError{Field: cErr.Key, Code: Malformed})
+		}
+	}
+
+	return FieldsFailure(fieldErrors...)
+}
+
 // ValidateFields validates the field validation tags on the provided schema, returning a Result.
-func ValidateFields(schema interface{}) *Result {
-	if err := validate.Struct(schema); err != nil {
+func ValidateFields(target interface{}) *Result {
+	if err := validate.Struct(target); err != nil {
 		fe := MarshalValidationErrors(err.(validator.ValidationErrors))
 		return &Result{FieldErrs: fe}
 	}
@@ -72,6 +95,15 @@ func Validate(ctx context.Context, v Validatable) (*Result, error) {
 // the fields on the schema using validator, and finally calls validate on the Validatable schema.
 func BindBodyAndValidate(ctx context.Context, r *http.Request, schema Validatable) (*Result, error) {
 	if res := BindBody(r, schema); !res.Success {
+		return res, nil
+	}
+	return Validate(ctx, schema)
+}
+
+// BindQueryAndValidate binds a request's URL query parameters to the provided Validatable interface, validates
+// the fields on the schema using validator, and finally calls validate on the Validatable schema.
+func BindQueryAndValidate(ctx context.Context, r *http.Request, schema Validatable) (*Result, error) {
+	if res := BindQuery(r, schema); !res.Success {
 		return res, nil
 	}
 	return Validate(ctx, schema)
