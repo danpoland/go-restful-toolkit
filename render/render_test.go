@@ -20,7 +20,19 @@ func TestOK(t *testing.T) {
 
 func TestAccepted(t *testing.T) {
 	w := httptest.NewRecorder()
-	_ = Accepted(w)
+	body := map[string]string{"key": "val"}
+	_ = Accepted(w, body)
+
+	r := w.Result()
+
+	if r.StatusCode != 202 {
+		t.Errorf("Expected 202, got '%v'", r.StatusCode)
+	}
+}
+
+func TestAcceptedEmpty(t *testing.T) {
+	w := httptest.NewRecorder()
+	_ = AcceptedEmpty(w)
 
 	r := w.Result()
 
