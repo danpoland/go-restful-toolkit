@@ -11,8 +11,13 @@ func OK(w http.ResponseWriter, body interface{}) error {
 }
 
 // Accepted renders a 202 response with an empty body.
-func Accepted(w http.ResponseWriter) error {
-	return Response(w, http.StatusAccepted, nil)
+func Accepted(w http.ResponseWriter, body interface{}) error {
+	return Response(w, http.StatusAccepted, body)
+}
+
+// AcceptedEmpty renders a 202 with an empty JSON object.
+func AcceptedEmpty(w http.ResponseWriter) error {
+	return Response(w, http.StatusAccepted, map[string]interface{}{})
 }
 
 // NoContent renders a 204 with an empty body.
